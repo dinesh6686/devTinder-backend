@@ -3,11 +3,11 @@ const app = express();
 const PORT = 7777;
 
 app.use(express.json());
-app.use('/hello',(req, res) => { 
+app.use('/hello', (req, res) => {
     res.send('Hi friends!!');
 })
 // this will match all the HTTP method API calls to /test
-app.use('/test', (req, res) => { 
+app.use('/test', (req, res) => {
     res.send('Test endpointtt')
 })
 
@@ -41,12 +41,12 @@ app.post('/users', (req, res) => {
     res.send(`User ${user.name} added to the db`)
 })
 
-app.put('/users/:id', (req, res) => { 
+app.put('/users/:id', (req, res) => {
     const id = req.params.id
     const user = users.find(user => user.id === parseInt(id))
-    if (user) { 
-        const updatedUser = {...user,...req.body}
-        users = users.map(u => u.id === parseInt(id)? updatedUser : u)
+    if (user) {
+        const updatedUser = { ...user, ...req.body }
+        users = users.map(u => u.id === parseInt(id) ? updatedUser : u)
         res.send(`User ${updatedUser.name} updated in the db`)
     }
     else {
@@ -54,7 +54,7 @@ app.put('/users/:id', (req, res) => {
     }
 })
 
-app.delete('/users/:id', (req, res) => { 
+app.delete('/users/:id', (req, res) => {
     const id = req.params.id
     const index = users.findIndex(user => user.id === parseInt(id))
     if (index) {
@@ -66,7 +66,7 @@ app.delete('/users/:id', (req, res) => {
     }
 })
 
-app.get('/users/:id?', (req, res) => { 
+app.get('/users/:id?', (req, res) => {
     const id = req.params.id
     if (id) {
         const user = users.find(user => user.id === parseInt(id))
@@ -78,7 +78,7 @@ app.get('/users/:id?', (req, res) => {
     res.send()
 })
 
-app.get('/ab*cd', (req, res) => { 
+app.get('/ab*cd', (req, res) => {
     res.send('Hello from ab?c')
 })
 
@@ -111,6 +111,9 @@ app.get(/.*fly$/, (req, res) => {
 })
 
 // One route can also have multiple route handlers(callback fn)
+// next() and errors if we send headers to res multiple times
+// app.use('/route', rH1, [rH2, rH3], rH4, rH5)
+// this will work for any HTTP methods like app.get, post, put, patch, delete similar to app.use
 app.get('/users123', (req, res, next) => {
     console.log('In 1st route handler');
     // res.send('1st response:: Get all users')   
@@ -120,18 +123,50 @@ app.get('/users123', (req, res, next) => {
     console.log('In 2nd route handler');
     // res.send('2nd response!')
     next()
-},(req, res, next) => {
-    // it wont go here until you use next() which is passed as the 3rd argument in the prev route handler(cb function)
+}, (req, res, next) => {
     console.log('In 3rd route handler');
     // res.send('3rd response!')
     next()
-},(req, res, next) => {
-    // it wont go here until you use next() which is passed as the 3rd argument in the prev route handler(cb function)
+}, (req, res, next) => {
     console.log('In 4th route handler');
     // res.send('4th response!')
     next()
-},(req, res, next) => {
-    // it wont go here until you use next() which is passed as the 3rd argument in the prev route handler(cb function)
+}, (req, res, next) => {
     console.log('In 5th route handler');
     res.send('5th response!')
 })
+
+// Independent route handler
+app.use('/route', (req, res, next) => {
+    console.log('1st rHandler');
+    next()
+})
+app.use('/route', (req, res, next) => {
+    console.log('2nd rHandler');
+    res.send('from 2nd rHandler');
+})
+
+
+// handling middlewares
+// What is a Middleware? Why do we need it?
+//  - How express JS basically handles requests behind the scenes
+//  - Difference app.use and app.all
+//  - Write a dummy auth middleware for admin
+//  - Write a dummy auth middleware for all user routes, except /user/login
+const { adminAuth, userAuth } = require('./middlewares/auth');
+app.use('/admin', adminAuth);
+
+app.post('/user/login', (req, res) => {
+    res.send('User logged in successfully');
+})
+
+app.get('/user/data', userAuth, (req, res) => {
+    res.send('User data fetched successfully');
+})
+
+app.get("/admin/getAllData", (req, res) => {
+    res.send("All Data Sent");
+});
+app.get("/admin/deleteUser", (req, res) => {
+    res.send("Deleted a user");
+});
