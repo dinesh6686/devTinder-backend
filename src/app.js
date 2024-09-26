@@ -170,3 +170,22 @@ app.get("/admin/getAllData", (req, res) => {
 app.get("/admin/deleteUser", (req, res) => {
     res.send("Deleted a user");
 });
+
+// - Error Handling using app.use("/", (err, req, res, next) = {});
+app.use("/", (err, req, res, next) => {
+    if (err) {
+        // Log your error
+        res.status(500).send("something went wrong");
+    }
+});
+
+app.get("/getUserData", (req, res) => {
+    try {
+        // Logic of DB call and get user data
+
+        throw new Error("dvbzhjf");
+        res.send("User Data Sent");
+    } catch (err) {
+        res.status(500).send("Some Error contact support team");
+    }
+});
