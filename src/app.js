@@ -4,7 +4,7 @@ const PORT = 7777;
 
 app.use(express.json());
 app.use('/hello',(req, res) => { 
-    res.send('Hi friends!!!');
+    res.send('Hi friends!!');
 })
 app.use('/test', (req, res) => { 
     res.send('Test endpointtt')
