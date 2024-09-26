@@ -109,3 +109,29 @@ app.get('/ab*cd', (req, res) => {
 app.get(/.*fly$/, (req, res) => {
     res.send('Hello from regex')
 })
+
+// One route can also have multiple route handlers(callback fn)
+app.get('/users123', (req, res, next) => {
+    console.log('In 1st route handler');
+    // res.send('1st response:: Get all users')   
+    next()
+}, (req, res, next) => {
+    // it wont go here until you use next() which is passed as the 3rd argument in the prev route handler(cb function)
+    console.log('In 2nd route handler');
+    // res.send('2nd response!')
+    next()
+},(req, res, next) => {
+    // it wont go here until you use next() which is passed as the 3rd argument in the prev route handler(cb function)
+    console.log('In 3rd route handler');
+    // res.send('3rd response!')
+    next()
+},(req, res, next) => {
+    // it wont go here until you use next() which is passed as the 3rd argument in the prev route handler(cb function)
+    console.log('In 4th route handler');
+    // res.send('4th response!')
+    next()
+},(req, res, next) => {
+    // it wont go here until you use next() which is passed as the 3rd argument in the prev route handler(cb function)
+    console.log('In 5th route handler');
+    res.send('5th response!')
+})
