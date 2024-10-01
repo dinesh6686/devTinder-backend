@@ -1,6 +1,41 @@
 const express = require("express");
+const connectDB = require("./config/database")
 const app = express();
 const PORT = 7777;
+const User = require("./models/user");
+
+//POST request to create data in db
+app.post('/signup', async (req, res) => {
+    const userObj = {
+        firstName: 'Drama',
+        lastName: 'Broma',
+        emailId: 'rrrddd@gmail.com',
+        password: 'ewewewew'
+    }
+    // Creating a new instance of the user model
+    const user = new User(userObj)
+
+    try {
+        // Saving the user to the database
+        await user.save()
+        res.status(201).json(user)
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+// DB connection should be established first after that start your server => which will be app.listen()
+connectDB()
+    .then(() => {
+        console.log('DB connection established...');
+        // here you should do app.listen
+        app.listen(PORT, () => {
+            console.log(`Server up and running on port ${PORT}`)
+        });
+    })
+    .catch((err) => {
+        console.error('DB connection error:', err.message)
+    })
 
 app.use(express.json());
 app.use('/hello', (req, res) => {
@@ -10,10 +45,6 @@ app.use('/hello', (req, res) => {
 app.use('/test', (req, res) => {
     res.send('Test endpointtt')
 })
-
-app.listen(PORT, () => {
-    console.log(`Server up and running on port ${PORT}`)
-});
 
 app.get('/', (req, res) => {
     res.send('Hello, World!');
@@ -179,11 +210,10 @@ app.use("/", (err, req, res, next) => {
     }
 });
 
-app.get("/getUserData", (req, res) => {
+app.get("/getUserData", (err, req, res, next) => {
     try {
         // Logic of DB call and get user data
-
-        throw new Error("dvbzhjf");
+        if (err) throw new Error("dvbzhjf");
         res.send("User Data Sent");
     } catch (err) {
         res.status(500).send("Some Error contact support team");
