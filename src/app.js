@@ -3,17 +3,13 @@ const connectDB = require("./config/database")
 const app = express();
 const PORT = 7777;
 const User = require("./models/user");
+app.use(express.json());
 
 //POST request to create data in db
 app.post('/signup', async (req, res) => {
-    const userObj = {
-        firstName: 'Drama',
-        lastName: 'Broma',
-        emailId: 'rrrddd@gmail.com',
-        password: 'ewewewew'
-    }
+    const userBody = req.body;    
     // Creating a new instance of the user model
-    const user = new User(userObj)
+    const user = new User(userBody)
 
     try {
         // Saving the user to the database
@@ -37,7 +33,6 @@ connectDB()
         console.error('DB connection error:', err.message)
     })
 
-app.use(express.json());
 app.use('/hello', (req, res) => {
     res.send('Hi friends!!');
 })
