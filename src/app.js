@@ -7,7 +7,7 @@ app.use(express.json());
 
 //POST request to create data in db
 app.post('/signup', async (req, res) => {
-    const userBody = req.body;    
+    const userBody = req.body;
     // Creating a new instance of the user model
     const user = new User(userBody)
 
@@ -15,6 +15,51 @@ app.post('/signup', async (req, res) => {
         // Saving the user to the database
         await user.save()
         res.status(201).json(user)
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+//GET /feed - get all users from the database
+app.get('/feed', async (req, res) => {
+    try {
+        const users = await User.find()
+        res.json(users)
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+//GET user by emailId
+app.get('/user/:emailId', async (req, res) => {
+    try {
+        const user = await User.findOne({ emailId: req.params.emailId })
+        if (!user) return res.status(404).send('User not found')
+        res.json(user)
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+//DELETE /users
+app.delete('/users/:_id', async (req, res) => {
+    try {
+        const userId = req.params._id
+        const user = await User.findByIdAndDelete(userId);
+        // const user = await User.findByIdAndDelete({_id: userId});
+        if (!user) return res.status(404).send('User not found')
+        res.send(`User with id: ${user._id} got deleted successfully`)
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+//UPDATE user
+app.patch('/users/:id', async (req, res) => {
+    const userId = req.params._id
+    const emailId = req.params.emailId
+    const data = req.body    
+    try {
+        const user = await User.findByIdAndUpdate(userId, data, { returnDocument: "after" });
+        // const user = await User.findOneAndUpdate({emailId: emailId}, data, { returnDocument: "after" });        
+        if (!user) return res.status(404).send('User not found')
+        res.send(`user with id: ${user._id} updated`)
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
@@ -33,6 +78,7 @@ connectDB()
         console.error('DB connection error:', err.message)
     })
 
+// --------------------------------------------------------------------------------------------------------------------
 app.use('/hello', (req, res) => {
     res.send('Hi friends!!');
 })
