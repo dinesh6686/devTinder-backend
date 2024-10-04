@@ -51,12 +51,15 @@ app.delete('/users/:_id', async (req, res) => {
     }
 })
 //UPDATE user
-app.patch('/users/:id', async (req, res) => {
+app.patch('/users/:_id', async (req, res) => {
     const userId = req.params._id
     const emailId = req.params.emailId
     const data = req.body    
     try {
-        const user = await User.findByIdAndUpdate(userId, data, { returnDocument: "after" });
+        const user = await User.findByIdAndUpdate(userId, data, {
+            returnDocument: "after",
+            runValidators: true
+        });
         // const user = await User.findOneAndUpdate({emailId: emailId}, data, { returnDocument: "after" });        
         if (!user) return res.status(404).send('User not found')
         res.send(`user with id: ${user._id} updated`)
