@@ -5,7 +5,12 @@ const PORT = 7777;
 const User = require("./models/user");
 const { validateSignUpData } = require('./utils/validation');
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const { adminAuth, userAuth } = require('./middlewares/auth');
+
 app.use(express.json());
+app.use(cookieParser())
 
 //POST request to create data in db
 app.post('/signup', async (req, res) => {
@@ -43,15 +48,37 @@ app.post('/login', async (req, res) => {
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) throw new Error('Invalid credentials');
-
-        return res.status(200).send('Login Successful');
+        else {
+            // Create a new JWT token
+            const token = await jwt.sign({ _id: user._id }, "yoURsecretKEY", { expiresIn: "7d"})
+            // Add the token to the cookie and send it to the user as response(res.cookie)
+            res.cookie('token', token, { expires: new Date(Date.now() + 8*3600000)})
+            res.status(200).send('Login Successful');
+        }
     } catch (error) {
         res.status(400).send(`ERROR: ` + error.message)
     }
 })
 
+app.get('/profile', userAuth, async (req, res) => {
+    try {
+        const user = req.user
+        res.send(user);
+    } catch (error) {
+        res.status(400).send(`ERROR: ` + error.message)
+    }
+})
+
+app.post('/sendConnectionRequest', userAuth, async (req, res) => { 
+    const user = req.user
+    console.log('Sending connection request');
+
+    res.send(`${user.firstName} sent the Connection request!`)    
+})
+
+// ------------------------------------------------------------------------------------------------
 //GET /feed - get all users from the database
-app.get('/feed', async (req, res) => {
+app.get('/feed', userAuth, async (req, res) => {
     try {
         const users = await User.find()
         res.json(users)
@@ -60,7 +87,7 @@ app.get('/feed', async (req, res) => {
     }
 })
 //GET user by emailId
-app.get('/user/:emailId', async (req, res) => {
+app.get('/user/:emailId', userAuth, async (req, res) => {
     try {
         const user = await User.findOne({ emailId: req.params.emailId })
         if (!user) return res.status(404).send('User not found')
@@ -272,7 +299,7 @@ app.use('/route', (req, res, next) => {
 //  - Difference app.use and app.all
 //  - Write a dummy auth middleware for admin
 //  - Write a dummy auth middleware for all user routes, except /user/login
-const { adminAuth, userAuth } = require('./middlewares/auth');
+// const { adminAuth, userAuth } = require('./middlewares/auth');
 app.use('/admin', adminAuth);
 
 app.post('/user/login', (req, res) => {
