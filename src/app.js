@@ -46,13 +46,14 @@ app.post('/login', async (req, res) => {
         const user = await User.findOne({ emailId });
         if (!user) throw new Error('Invalid credentials');
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await user.validatePassword(password)
         if (!isPasswordValid) throw new Error('Invalid credentials');
         else {
             // Create a new JWT token
-            const token = await jwt.sign({ _id: user._id }, "yoURsecretKEY", { expiresIn: "7d"})
+            const token = await user.getJWT()
+
             // Add the token to the cookie and send it to the user as response(res.cookie)
-            res.cookie('token', token, { expires: new Date(Date.now() + 8*3600000)})
+            res.cookie('token', token, { expires: new Date(Date.now() + 8 * 3600000) })
             res.status(200).send('Login Successful');
         }
     } catch (error) {
@@ -69,11 +70,11 @@ app.get('/profile', userAuth, async (req, res) => {
     }
 })
 
-app.post('/sendConnectionRequest', userAuth, async (req, res) => { 
+app.post('/sendConnectionRequest', userAuth, async (req, res) => {
     const user = req.user
     console.log('Sending connection request');
 
-    res.send(`${user.firstName} sent the Connection request!`)    
+    res.send(`${user.firstName} sent the Connection request!`)
 })
 
 // ------------------------------------------------------------------------------------------------
