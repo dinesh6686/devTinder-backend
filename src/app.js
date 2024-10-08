@@ -3,81 +3,20 @@ const connectDB = require("./config/database")
 const app = express();
 const PORT = 7777;
 const User = require("./models/user");
-const { validateSignUpData } = require('./utils/validation');
-const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
 const { adminAuth, userAuth } = require('./middlewares/auth');
+const authRouter = require('./routes/auth');
+const profileRouter = require('./routes/profile');
+const requestRouter = require('./routes/request');
 
 app.use(express.json());
 app.use(cookieParser())
 
-//POST request to create data in db
-app.post('/signup', async (req, res) => {
-    try {
-        // NEVER TRUST req.body
-        //validation of data
-        validateSignUpData(req)
+app.use('/auth', authRouter)
+app.use('/', profileRouter)
+app.use('/request', requestRouter)
 
-        // encrypt the password -> encrypted hash password using bcrypt library
-        const { firstName, lastName, emailId, password } = req.body;
-        const passwordHash = await bcrypt.hash(password, 10);
-        console.log(passwordHash); //$2b$10$QXwW9eNsO7ByWFS1b5WyUOR.PZKennTpzu9fMUeTw2SeWysrI6pFS
-
-        // Creating a new instance of the user model
-        const user = new User({
-            firstName,
-            lastName,
-            emailId,
-            password: passwordHash,
-        })
-
-        // Saving the user to the database
-        await user.save()
-        res.status(201).json(user)
-    } catch (error) {
-        res.status(400).json({ message: error.message })
-    }
-})
-//login API
-app.post('/login', async (req, res) => {
-    try {
-        const { emailId, password } = req.body;
-        const user = await User.findOne({ emailId });
-        if (!user) throw new Error('Invalid credentials');
-
-        const isPasswordValid = await user.validatePassword(password)
-        if (!isPasswordValid) throw new Error('Invalid credentials');
-        else {
-            // Create a new JWT token
-            const token = await user.getJWT()
-
-            // Add the token to the cookie and send it to the user as response(res.cookie)
-            res.cookie('token', token, { expires: new Date(Date.now() + 8 * 3600000) })
-            res.status(200).send('Login Successful');
-        }
-    } catch (error) {
-        res.status(400).send(`ERROR: ` + error.message)
-    }
-})
-
-app.get('/profile', userAuth, async (req, res) => {
-    try {
-        const user = req.user
-        res.send(user);
-    } catch (error) {
-        res.status(400).send(`ERROR: ` + error.message)
-    }
-})
-
-app.post('/sendConnectionRequest', userAuth, async (req, res) => {
-    const user = req.user
-    console.log('Sending connection request');
-
-    res.send(`${user.firstName} sent the Connection request!`)
-})
-
-// ------------------------------------------------------------------------------------------------
+// ----------------------------------END OF devTinder APIs--------------------------------------------------------------
 //GET /feed - get all users from the database
 app.get('/feed', userAuth, async (req, res) => {
     try {
