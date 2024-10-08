@@ -52,4 +52,10 @@ router.post('/login', async (req, res) => {
     }
 })
 
+router.post('/logout', async (req, res) => {
+    //set the cookie to null and expire it.
+    res.cookie('token', null, { expires: new Date(Date.now()) })
+    res.send('Logged out successfully');
+})
+
 module.exports = router;

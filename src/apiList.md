@@ -1,16 +1,16 @@
 # DevTinder APIs
 
-authRouter
+authRouter(auth)
 
 - POST /signup
 - POST /login
 - POST /logout
 
-profileRouter
+profileRouter(profile)
 
 - GET /profile/view
 - PATCH /profile/edit
-- PATCH /profile/password
+- PATCH /profile/password //forgot password-> take existing and new password, validate it, hash the new password only if the old password matched
 
 connectionRequestRouter
 
